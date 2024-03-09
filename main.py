@@ -24,7 +24,6 @@ for waveform in data['waveforms']:
     time_values = waveform['Time (s)']
     amplitude_values = waveform['Amplitude (V)']
 
-
 plt.plot(time_values,amplitude_values)
 plt.xlabel('Time (s)')
 plt.ylabel('Amplitude (V)')

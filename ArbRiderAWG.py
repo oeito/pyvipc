@@ -2,7 +2,13 @@ import pyvisa
 import numpy as np
 
 
-
+LIMITS = {
+	'freqLim': 1,
+	'volLim': 2,
+	'wavelengthLim': 4,
+	'resolutionLim': 4,
+	'memLocLim': 2,
+}
 
 
 
@@ -15,22 +21,25 @@ class ArbRider:
                         print('Pyvisa not installed')
                         raise
                 self.write("*CLS")
-                ch1=Channel(self,1)
-                ch2=Channel(self,2)
+                self.ch1= Channel(self,1)
+                self.ch2= Channel(self,2)
 
         def write(self, msg):
-                self.resource.write(msg)
+                self.rm.write(msg)
 
         def query(self, msg):
-                return self.resource.query(msg)
+                return self.rm.query(msg)
         
         def close(self):
-                return self.resource.close()
+                return self.rm.close()
 
         def idn(self):
                 return self.query('*IDN?')
         
-        
+        def syncroniseChannels(self):
+                self.write(":PHAS:INIT")
+
+
 class Channel:
         def __init__(self,arbRider:ArbRider,channel:int):
                 self._awg=arbRider
@@ -57,6 +66,9 @@ class Channel:
         @property
         def output(self):
                 return self._awg.query(f"OUTPut{self._channel}:STATe?")
+        @property
+        def sync(self):
+                return self._awg.query(f"SOURce{self._channel}::FREQuency:CONCurrent?")      
         ## Setters #############################################
 
         @amplitude.setter
@@ -86,5 +98,10 @@ class Channel:
         def output(self,value:int):
                 if value!=self._output:
                         self._output=value
-                        self._awg.write(f"OUTPut{self._channel}:STATe {value}")          
+                        self._awg.write(f"OUTPut{self._channel}:STATe {value}")         
+        @sync.setter
+        def sync(self,value:int):
+                if value!=self.sync:
+                        self.sync=value
+                        self._awg.write(f"SOURCE{self._channel}:FREQuency:CONCurrent  {value}")      
         ## Functions #############################################
