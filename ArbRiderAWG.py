@@ -6,7 +6,7 @@ import numpy as np
 
 
 
-class ArbRiderAWG:
+class ArbRider:
         def __init__(self,resource_name:str):
                 try:
                         rm=pyvisa.ResourceManager('@py')
