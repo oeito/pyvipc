@@ -10,11 +10,35 @@ class ArbRider:
         def __init__(self,resource_name:str):
                 try:
                         rm=pyvisa.ResourceManager('@py')
-                        self.resource=rm.open_resource(resource_name)
+                        self.rm=rm.open_resource(resource_name)
                 except:
                         print('Pyvisa not installed')
                         raise
                 self.write("*CLS")
+                ch1=Channel(self,1)
+                ch2=Channel(self,2)
+        def write(self, msg):
+                self.resource.write(msg)
+
+        def query(self, msg):
+                return self.resource.query(msg)
+        
+        def close(self):
+                return self.resource.close()
+
+        def idn(self):
+                return self.query('*IDN?')
+        
+
+
+
+        
+
+class Channel:
+        def __init__(self,awg:ArbRider,channel:int):
+                self._resource=awg
+                self.channel(channel)
+
 
 
         ## Properties #############################################
@@ -37,59 +61,39 @@ class ArbRider:
         @property
         def phase(self):
                 return self._phase   
+        @property
+        def channel(self):
+                return self._channel   
+        @property
+        def output(self):
+                return self._output   
         ## Setters #############################################
 
         @amplitude.setter
         def amplitude(self,value:float):
-                self._amplitude
+                if value != self._amplitude:
+                        self._amplitude=value
+                        self._resource.write()
         @function.setter
         def function(self,value:str):
-                self._function
+                if value != self._function:
+                        self._function=value
         @frequency.setter
         def frequency(self,value:int):
-                self._frequency
+                self._frequency=value
         @offset.setter
         def offset(self,value:float):
-                self._offset   
+                self._offset=value   
         @output.setter
         def output(self,value:int):
-                self._output 
+                self._output=value 
         @phase.setter
         def phase(self,value:float):
-                self._phase
+                self._phase=value
+        @channel.setter
+        def channel(self,value:float):
+                self._channel=value
+        @output.setter
+        def output(self,value:int):
+                self._output=value
         ## Functions #############################################
-
-        def idn(self):
-                return self.resource.query('*IDN?')
-        
-        def write(self, msg):
-                self.resource.write(msg)
-
-        def query(self, msg):
-                return self.resource.query(msg)
-        
-        def close(self):
-                return self.resource.close()
-
-        def config(self,amplitude:float,frequency:int,offset:float,phase:float,channel:int):
-                """
-                Parameters
-                ----------
-                amplitude : float Voltage Vpp
-                frequency : int Frequency in Hz
-                offset : float Offset voltage in V
-                phase : float Phase
-                channel : int Channel number
-                """
-                return 0
-
-        def pulse(self,chanel:int):
-                """
-                Parameters
-                ----------
-                chanel : int channel number
-                """
-                return 0
-        
-        
-
