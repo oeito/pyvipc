@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 o = TeledyneLeCroyPy.LeCroyWaveRunner('VICP::') 
-awg = ArbRiderAWG.ArbRider('VICP::')
+awg = ArbRiderAWG.ArbRider('TCPIP::::INSTR')
 TDIV=4e-3
 VDIV=50e-3 
 
