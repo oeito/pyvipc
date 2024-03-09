@@ -5,7 +5,7 @@ import numpy as np
 LIMITS = {
 	'freqLim': 1,
 	'volLim': 2,
-	'wavelengthLim': 4,
+	'wavelengthLim': 4, 
 	'resolutionLim': 4,
 	'memLocLim': 2,
 }
