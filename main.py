@@ -6,7 +6,7 @@ import numpy as np
 o = TeledyneLeCroyPy.LeCroyWaveRunner('VICP::147.156.52.47') 
 
 TDIV=4e-3
-VDIV=50e-3
+VDIV=50e-3 
 
 o.set_tdiv(1,TDIV)
 o.set_tdiv(2,TDIV)
