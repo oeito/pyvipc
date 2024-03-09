@@ -17,6 +17,7 @@ class ArbRider:
                 self.write("*CLS")
                 ch1=Channel(self,1)
                 ch2=Channel(self,2)
+
         def write(self, msg):
                 self.resource.write(msg)
 
@@ -29,71 +30,61 @@ class ArbRider:
         def idn(self):
                 return self.query('*IDN?')
         
-
-
-
         
-
 class Channel:
-        def __init__(self,awg:ArbRider,channel:int):
-                self._resource=awg
-                self.channel(channel)
-
+        def __init__(self,arbRider:ArbRider,channel:int):
+                self._awg=arbRider
+                self._channel=channel
 
 
         ## Properties #############################################
                 
         @property
         def amplitude(self):
-                return self._amplitude
+                return self._awg.query(f"SOURce{self._channel}:VOLTage:AMPLitude?")
         @property
-        def function(self):
-                return self._function
+        def shape(self):
+                return self._awg.query(f"SOURce{self._channel}:FUNCtion:SHAPe?")
         @property
         def frequency(self):
-                return self._frequency
+                return self._awg.query(f"SOURce{self._channel}:FREQuency?")
         @property
         def offset(self):
-                return self._offset
-        @property
-        def output(self):
-                return self._output
+                return self._awg.query(f"SOURce{self._channel}:VOLTage:OFFSet?")
         @property
         def phase(self):
-                return self._phase   
-        @property
-        def channel(self):
-                return self._channel   
+                return self._awg.query(f"SOURce{self._channel}:") 
         @property
         def output(self):
-                return self._output   
+                return self._awg.query(f"OUTPut{self._channel}:STATe?")
         ## Setters #############################################
 
         @amplitude.setter
         def amplitude(self,value:float):
                 if value != self._amplitude:
                         self._amplitude=value
-                        self._resource.write()
-        @function.setter
+                        self._awg.write(f"SOURce{self._channel}:VOLTage:LEVel {value}")
+        @shape.setter
         def function(self,value:str):
-                if value != self._function:
-                        self._function=value
+                if value != self._shape:
+                        self._shape=value
+                        self._awg.write(f"SOURce{self._channel}:FUNCtion:SHAPe {value}")
         @frequency.setter
         def frequency(self,value:int):
-                self._frequency=value
+                if value != self._frequency:
+                        self._frequency=value
+                        self._awg.write(f"SOURce{self._channel}:FREQuency:FIXed {value}")
         @offset.setter
         def offset(self,value:float):
-                self._offset=value   
-        @output.setter
-        def output(self,value:int):
-                self._output=value 
+                if value != self._offset:
+                        self._offset=value
+                        self._awg.write(f"SOURce{self._channel}VOLTage:LEVel:OFFSet {value}")
         @phase.setter
         def phase(self,value:float):
                 self._phase=value
-        @channel.setter
-        def channel(self,value:float):
-                self._channel=value
         @output.setter
         def output(self,value:int):
-                self._output=value
+                if value!=self._output:
+                        self._output=value
+                        self._awg.write(f"OUTPut{self._channel}:STATe {value}")          
         ## Functions #############################################
