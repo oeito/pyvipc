@@ -55,7 +55,7 @@ class ArbRider:
         def output(self,value:int):
                 self._output 
         @phase.setter
-        def phase(self,value:int):
+        def phase(self,value:float):
                 self._phase
         ## Functions #############################################
 
@@ -70,8 +70,25 @@ class ArbRider:
         
         def close(self):
                 return self.resource.close()
-        
-        def pulse(self,on,off):
+
+        def config(self,amplitude:float,frequency:int,offset:float,phase:float,channel:int):
+                """
+                Parameters
+                ----------
+                amplitude : float Voltage Vpp
+                frequency : int Frequency in Hz
+                offset : float Offset voltage in V
+                phase : float Phase
+                channel : int Channel number
+                """
+                return 0
+
+        def pulse(self,chanel:int):
+                """
+                Parameters
+                ----------
+                chanel : int channel number
+                """
                 return 0
         
         

@@ -19,7 +19,7 @@ osc.set_trig_source('C1')
 osc.set_trig_slope('Positive')
 osc.set_trig_mode('SINGLE')
 data=  osc.get_waveform(n_channel=2)
-awg.function('seno')
+
 for waveform in data['waveforms']:
     time_values = waveform['Time (s)']
     amplitude_values = waveform['Amplitude (V)']
