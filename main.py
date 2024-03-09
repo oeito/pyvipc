@@ -3,7 +3,7 @@ import TeledyneLeCroyPy
 import matplotlib.pyplot as plt
 import numpy as np
 
-o = TeledyneLeCroyPy.LeCroyWaveRunner('VICP::147.156.52.47')
+o = TeledyneLeCroyPy.LeCroyWaveRunner('VICP::147.156.52.47') 
 
 TDIV=4e-3
 VDIV=50e-3
