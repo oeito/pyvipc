@@ -11,7 +11,6 @@ LIMITS = {
 }
 
 
-
 class ArbRider:
         def __init__(self,resource_name:str):
                 try:
@@ -20,12 +19,16 @@ class ArbRider:
                 except:
                         print('Pyvisa not installed')
                         raise
-                self.write("*CLS")
+                self.write('*CLS')
+                self.write('CHDR OFF')
                 self.ch1= Channel(self,1)
                 self.ch2= Channel(self,2)
-
+                
         def write(self, msg):
                 self.rm.write(msg)
+
+        def writeBinary(self,command:str,values:str):
+                self.rm.write_binary_values(command, values, datatype='d', is_big_endian=False)
 
         def query(self, msg):
                 return self.rm.query(msg)
@@ -37,71 +40,80 @@ class ArbRider:
                 return self.query('*IDN?')
         
         def syncroniseChannels(self):
-                self.write(":PHAS:INIT")
+                self.write(':PHAS:INIT')
+
+        def setCustomWaveform(self, waveform:np.array,name:str):
+                self.writeBinary(f'WLISt:WAVeform:DATA {name}',waveform )
+        
+        def operationEnable(self,value:int):
+                self.write(f'STATus:OPERation:ENABle {value}')
+
+
 
 
 class Channel:
         def __init__(self,arbRider:ArbRider,channel:int):
                 self._awg=arbRider
                 self._channel=channel
-
-
         ## Properties #############################################
                 
         @property
         def amplitude(self):
-                return self._awg.query(f"SOURce{self._channel}:VOLTage:AMPLitude?")
+                return self._awg.query(f'SOURce{self._channel}:VOLTage:AMPLitude?')
         @property
         def shape(self):
-                return self._awg.query(f"SOURce{self._channel}:FUNCtion:SHAPe?")
+                return self._awg.query(f'SOURce{self._channel}:WAVeform?')
         @property
         def frequency(self):
-                return self._awg.query(f"SOURce{self._channel}:FREQuency?")
+                return self._awg.query(f'SOURce{self._channel}:FREQuency?')
         @property
         def offset(self):
-                return self._awg.query(f"SOURce{self._channel}:VOLTage:OFFSet?")
+                return self._awg.query(f'SOURce{self._channel}:VOLTage:OFFSet?')
         @property
         def phase(self):
-                return self._awg.query(f"SOURce{self._channel}:") 
+                return self._awg.query(f'SOURce{self._channel}:PHASe:ADJust?') 
         @property
         def output(self):
-                return self._awg.query(f"OUTPut{self._channel}:STATe?")
+                return self._awg.query(f'OUTPut{self._channel}:STATe?')
         @property
         def sync(self):
-                return self._awg.query(f"SOURce{self._channel}::FREQuency:CONCurrent?")      
+                return self._awg.query(f'SOURce{self._channel}:FREQuency:CONCurrent?')      
         ## Setters #############################################
 
         @amplitude.setter
         def amplitude(self,value:float):
                 if value != self._amplitude:
                         self._amplitude=value
-                        self._awg.write(f"SOURce{self._channel}:VOLTage:LEVel {value}")
+                        self._awg.write(f'SOURce{self._channel}:VOLTage:LEVel {value}')
         @shape.setter
         def function(self,value:str):
                 if value != self._shape:
                         self._shape=value
-                        self._awg.write(f"SOURce{self._channel}:FUNCtion:SHAPe {value}")
+                        self._awg.write(f'SOURce{self._channel}:WAVeform {value}')
         @frequency.setter
         def frequency(self,value:int):
                 if value != self._frequency:
                         self._frequency=value
-                        self._awg.write(f"SOURce{self._channel}:FREQuency:FIXed {value}")
+                        self._awg.write(f'SOURce{self._channel}:FREQuency:FIXed {value}')
         @offset.setter
         def offset(self,value:float):
                 if value != self._offset:
                         self._offset=value
-                        self._awg.write(f"SOURce{self._channel}VOLTage:LEVel:OFFSet {value}")
+                        self._awg.write(f'SOURce{self._channel}:VOLTage:LEVel:OFFSet {value}')
         @phase.setter
-        def phase(self,value:float):
-                self._phase=value
+        def phase(self,value:int):
+                if value!=self._phase:
+                        self._phase=value
+                        self._awg.write(f'OUTPut{self._channel}:PHASe:ADJust {value}')         
         @output.setter
         def output(self,value:int):
                 if value!=self._output:
                         self._output=value
-                        self._awg.write(f"OUTPut{self._channel}:STATe {value}")         
+                        self._awg.write(f'OUTPut{self._channel}:STATe {value}')         
         @sync.setter
         def sync(self,value:int):
                 if value!=self.sync:
                         self.sync=value
-                        self._awg.write(f"SOURCE{self._channel}:FREQuency:CONCurrent  {value}")      
+                        self._awg.write(f'SOURCE{self._channel}:FREQuency:CONCurrent {value}')      
+
         ## Functions #############################################
