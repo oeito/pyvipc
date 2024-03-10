@@ -19,23 +19,24 @@ class ArbRider:
                 except:
                         print('Pyvisa not installed')
                         raise
-                self.write('*CLS')
-                self.write('CHDR OFF')
-                self.ch1= Channel(self,1)
-                self.ch2= Channel(self,2)
-                
+                self.ch1= self.Channel(self.rm,1)
+                self.ch2= self.Channel(self.rm,2)
+
+        def __del__(self):
+                self.rm.close()    
+                 
         def write(self, msg):
                 self.rm.write(msg)
 
         def writeBinary(self,command:str,values:str):
                 self.rm.write_binary_values(command, values, datatype='d', is_big_endian=False)
 
+        def close(self):
+                self.rm.close()
+
         def query(self, msg):
                 return self.rm.query(msg)
         
-        def close(self):
-                return self.rm.close()
-
         def idn(self):
                 return self.query('*IDN?')
         
@@ -59,7 +60,7 @@ class ArbRider:
                         GATed sets Run Mode to Gated.
                         SEQuence sets Run Mode to Sequence
                 """
-                return self.query(f'RMODe?')    
+                return self.query(f'AWGControl:RMODe?')    
         @property
         def runState(self):
                 """Query run status      
@@ -73,10 +74,10 @@ class ArbRider:
                 return self.query(f'RSTate?')    
         @property
         def run(self):
-                self.write(f'RUN')    
+                self.write(f'AWGControl:RUN')    
         @property
         def stop(self):
-                self.write(f'STOP')    
+                self.write(f'AWGControl:STOP')    
         @property
         def trigger(self):
                 self.write(f'*TRG')    
@@ -95,76 +96,72 @@ class ArbRider:
                 """
                 if mode!=self._runMode:
                         self._runMode=mode
-                        self.write(f'RMODE {mode}')         
+                        self.write(f'AWGControl:RMODE {mode}')         
 
+        class Channel:
+                def __init__(self,awg,channel:int):
+                        self._awg=awg
+                        self._channel=channel
+                ## Properties #############################################
+                        
+                @property
+                def amplitude(self):
+                        return self._awg.query(f'SOURce{self._channel}:VOLTage:AMPLitude?')
+                @property
+                def shape(self):
+                        return self._awg.query(f'SOURce{self._channel}:WAVeform?')
+                @property
+                def frequency(self):
+                        return self._awg.query(f'SOURce{self._channel}:FREQuency?')
+                @property
+                def offset(self):
+                        return self._awg.query(f'SOURce{self._channel}:VOLTage:OFFSet?')
+                @property
+                def phase(self):
+                        return self._awg.query(f'SOURce{self._channel}:PHASe:ADJust?') 
+                @property
+                def output(self):
+                        return self._awg.query(f'OUTPut{self._channel}:STATe?')
+                @property
+                def sync(self):
+                        return self._awg.query(f'SOURce{self._channel}:FREQuency:CONCurrent?')      
 
+                ## Setters ################################################
 
+                @amplitude.setter
+                def amplitude(self,value:float):
+                        if value != self._amplitude:
+                                self._amplitude=value
+                                self._awg.write(f'SOURce{self._channel}:VOLTage:LEVel {value}')
+                @shape.setter
+                def function(self,value:str):
+                        if value != self._shape:
+                                self._shape=value
+                                self._awg.write(f'SOURce{self._channel}:WAVeform {value}')
+                @frequency.setter
+                def frequency(self,value:int):
+                        if value != self._frequency:
+                                self._frequency=value
+                                self._awg.write(f'SOURce{self._channel}:FREQuency:FIXed {value}')
+                @offset.setter
+                def offset(self,value:float):
+                        if value != self._offset:
+                                self._offset=value
+                                self._awg.write(f'SOURce{self._channel}:VOLTage:LEVel:OFFSet {value}')
+                @phase.setter
+                def phase(self,value:int):
+                        if value!=self._phase:
+                                self._phase=value
+                                self._awg.write(f'OUTPut{self._channel}:PHASe:ADJust {value}')         
+                @output.setter
+                def output(self,value:int):
+                        if value!=self._output:
+                                self._output=value
+                                self._awg.write(f'OUTPut{self._channel}:STATe {value}')         
+                @sync.setter
+                def sync(self,value:int):
+                        if value!=self._sync:
+                                self._sync=value
+                                self._awg.write(f'SOURCE{self._channel}:FREQuency:CONCurrent {value}')      
 
-
-class Channel:
-        def __init__(self,arbRider:ArbRider,channel:int):
-                self._awg=arbRider
-                self._channel=channel
-        ## Properties #############################################
-                
-        @property
-        def amplitude(self):
-                return self._awg.query(f'SOURce{self._channel}:VOLTage:AMPLitude?')
-        @property
-        def shape(self):
-                return self._awg.query(f'SOURce{self._channel}:WAVeform?')
-        @property
-        def frequency(self):
-                return self._awg.query(f'SOURce{self._channel}:FREQuency?')
-        @property
-        def offset(self):
-                return self._awg.query(f'SOURce{self._channel}:VOLTage:OFFSet?')
-        @property
-        def phase(self):
-                return self._awg.query(f'SOURce{self._channel}:PHASe:ADJust?') 
-        @property
-        def output(self):
-                return self._awg.query(f'OUTPut{self._channel}:STATe?')
-        @property
-        def sync(self):
-                return self._awg.query(f'SOURce{self._channel}:FREQuency:CONCurrent?')      
-
-        ## Setters ################################################
-
-        @amplitude.setter
-        def amplitude(self,value:float):
-                if value != self._amplitude:
-                        self._amplitude=value
-                        self._awg.write(f'SOURce{self._channel}:VOLTage:LEVel {value}')
-        @shape.setter
-        def function(self,value:str):
-                if value != self._shape:
-                        self._shape=value
-                        self._awg.write(f'SOURce{self._channel}:WAVeform {value}')
-        @frequency.setter
-        def frequency(self,value:int):
-                if value != self._frequency:
-                        self._frequency=value
-                        self._awg.write(f'SOURce{self._channel}:FREQuency:FIXed {value}')
-        @offset.setter
-        def offset(self,value:float):
-                if value != self._offset:
-                        self._offset=value
-                        self._awg.write(f'SOURce{self._channel}:VOLTage:LEVel:OFFSet {value}')
-        @phase.setter
-        def phase(self,value:int):
-                if value!=self._phase:
-                        self._phase=value
-                        self._awg.write(f'OUTPut{self._channel}:PHASe:ADJust {value}')         
-        @output.setter
-        def output(self,value:int):
-                if value!=self._output:
-                        self._output=value
-                        self._awg.write(f'OUTPut{self._channel}:STATe {value}')         
-        @sync.setter
-        def sync(self,value:int):
-                if value!=self._sync:
-                        self._sync=value
-                        self._awg.write(f'SOURCE{self._channel}:FREQuency:CONCurrent {value}')      
-
-        ## Functions #############################################
+                ## Functions #############################################
