@@ -41,7 +41,7 @@ class ArbRider:
                 return self.query('*IDN?')
         
         def syncroniseChannels(self):
-                self.write(':PHAS:INIT')
+                self.write('PHAS:INIT')
 
         def setCustomWaveform(self, waveform:np.array,name:str):
                 self.write(f'WLISt:WAVeform:NEW "{name}",{waveform.length},REAL')
