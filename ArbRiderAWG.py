@@ -43,10 +43,47 @@ class ArbRider:
                 self.write(':PHAS:INIT')
 
         def setCustomWaveform(self, waveform:np.array,name:str):
-                self.writeBinary(f'WLISt:WAVeform:DATA {name}',waveform )
+                self.write(f'WLISt:WAVeform:NEW "{name}",{waveform.length},REAL')
+                self.writeBinary(f'WLISt:WAVeform:DATA "{name}",0,{waveform.length}', waveform )
         
-        def operationEnable(self,value:int):
-                self.write(f'STATus:OPERation:ENABle {value}')
+
+        ## Properties #############################################
+        @property
+        def runMode(self):
+                return self.query(f'RMODe?')    
+        @property
+        def run(self):
+                return self.query(f'SOURce{self._channel}:FREQuency:CONCurrent?')    
+        @property
+        def stop(self):
+                return self.query(f'SOURce{self._channel}:FREQuency:CONCurrent?')    
+
+
+        ## Setters ################################################
+        @runMode.setter
+        def runMode(self,mode:str):
+                """Set run mode       
+                Parameterers
+                ------------
+                mode : str
+                        CONTinuous sets Run Mode to Continuous.
+                        TRIGgered sets Run Mode to Triggered.
+                        GATed sets Run Mode to Gated.
+                        SEQuence sets Run Mode to Sequence
+                """
+                if mode!=self._runMode:
+                        self._runMode=mode
+                        self.write(f'OUTPut{self._channel}:STATe {mode}')         
+        @run.setter
+        def run(self,value:int):
+                if value!=self._run:
+                        self._run=value
+                        self.write(f'SOURCE{self._channel}:FREQuency:CONCurrent {value}')      
+        @stop.setter
+        def stop(self,value:int):
+                if value!=self._stop:
+                        self._stop=value
+                        self.write(f'SOURCE{self._channel}:FREQuency:CONCurrent {value}')     
 
 
 
@@ -78,7 +115,8 @@ class Channel:
         @property
         def sync(self):
                 return self._awg.query(f'SOURce{self._channel}:FREQuency:CONCurrent?')      
-        ## Setters #############################################
+
+        ## Setters ################################################
 
         @amplitude.setter
         def amplitude(self,value:float):
@@ -112,8 +150,8 @@ class Channel:
                         self._awg.write(f'OUTPut{self._channel}:STATe {value}')         
         @sync.setter
         def sync(self,value:int):
-                if value!=self.sync:
-                        self.sync=value
+                if value!=self._sync:
+                        self._sync=value
                         self._awg.write(f'SOURCE{self._channel}:FREQuency:CONCurrent {value}')      
 
         ## Functions #############################################
