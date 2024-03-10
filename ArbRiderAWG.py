@@ -50,14 +50,36 @@ class ArbRider:
         ## Properties #############################################
         @property
         def runMode(self):
+                """Set run mode       
+                Returns
+                ------------
+                mode : str
+                        CONTinuous sets Run Mode to Continuous.
+                        TRIGgered sets Run Mode to Triggered.
+                        GATed sets Run Mode to Gated.
+                        SEQuence sets Run Mode to Sequence
+                """
                 return self.query(f'RMODe?')    
         @property
+        def runState(self):
+                """Query run status      
+                Returns
+                ------------
+                int
+                        0 indicates that the instrument has stopped.
+                        1 indicates that the instrument is waiting for trigger.
+                        2 indicates that the instrument is running.
+                """
+                return self.query(f'RSTate?')    
+        @property
         def run(self):
-                return self.query(f'SOURce{self._channel}:FREQuency:CONCurrent?')    
+                self.write(f'RUN')    
         @property
         def stop(self):
-                return self.query(f'SOURce{self._channel}:FREQuency:CONCurrent?')    
-
+                self.write(f'STOP')    
+        @property
+        def trigger(self):
+                self.write(f'*TRG')    
 
         ## Setters ################################################
         @runMode.setter
@@ -73,17 +95,8 @@ class ArbRider:
                 """
                 if mode!=self._runMode:
                         self._runMode=mode
-                        self.write(f'OUTPut{self._channel}:STATe {mode}')         
-        @run.setter
-        def run(self,value:int):
-                if value!=self._run:
-                        self._run=value
-                        self.write(f'SOURCE{self._channel}:FREQuency:CONCurrent {value}')      
-        @stop.setter
-        def stop(self,value:int):
-                if value!=self._stop:
-                        self._stop=value
-                        self.write(f'SOURCE{self._channel}:FREQuency:CONCurrent {value}')     
+                        self.write(f'RMODE {mode}')         
+
 
 
 
