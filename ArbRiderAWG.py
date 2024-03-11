@@ -124,7 +124,24 @@ class ArbRider:
                         return self._awg.query(f'OUTPut{self._channel}:STATe?')
                 @property
                 def sync(self):
-                        return self._awg.query(f'SOURce{self._channel}:FREQuency:CONCurrent?')      
+                        return self._awg.query(f'SOURce{self._channel}:FREQuency:CONCurrent?')  
+
+
+                @property
+                def pulseDutyCycle(self):
+                        return self._awg.query(f'SOURce{self._channel}:PULSe:DCYCle?')      
+                @property
+                def pulsePeriod(self):
+                        return self._awg.query(f'SOURce{self._channel}:PULSe:PERiod?')      
+
+                @property
+                def pulseTransition(self):
+                        return self._awg.query(f'SOURce{self._channel}:PULSe:TRANsition?')      
+
+                @property
+                def pulseWidth(self):
+                        return self._awg.query(f'SOURce{self._channel}:PULSe:WIDTh?')      
+
 
                 ## Setters ################################################
 
@@ -162,6 +179,33 @@ class ArbRider:
                 def sync(self,value:int):
                         if value!=self._sync:
                                 self._sync=value
-                                self._awg.write(f'SOURCE{self._channel}:FREQuency:CONCurrent {value}')      
+                                self._awg.write(f'SOURCE{self._channel}:FREQuency:CONCurrent {value}')   
+
+
+
+
+                @pulseDutyCycle.setter
+                def pulseDutyCycle(self,value:int):
+                        if value!=self._pulseDutyCycle:
+                                self._pulseDutyCycle=value
+                                self._awg.write(f'SOURCE{self._channel}:PULSe:DCYCle {value}')      
+
+                @pulsePeriod.setter
+                def pulsePeriod(self,value:int):
+                        if value!=self._pulsePeriod:
+                                self._pulsePeriod=value
+                                self._awg.write(f'SOURCE{self._channel}:PULSe:PERiod {value}')      
+
+                @pulseTransition.setter
+                def pulseTransition(self,value:int):
+                        if value!=self._pulseTransition:
+                                self._pulseTransition=value
+                                self._awg.write(f'SOURCE{self._channel}]:PULSe:TRANsition {value}')      
+
+                @pulseWidth.setter
+                def pulseWidth(self,value:int):
+                        if value!=self._pulseWidth:
+                                self._pulseWidth=value
+                                self._awg.write(f'SOURCE{self._channel}:PULSe:WIDTh {value}')      
 
                 ## Functions #############################################
