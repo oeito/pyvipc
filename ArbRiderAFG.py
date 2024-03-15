@@ -52,7 +52,7 @@ class ArbRider:
         
 
 
-        @property
+
         def runState(self):
                 """Query run status      
                 Returns
@@ -69,15 +69,26 @@ class ArbRider:
   
         def stop(self):
                 self.write(f'AFGControl:STOP')    
-
         def trigger(self):
                 self.write(f'TRIGger:IMMediate')    
+                
+        @property
+        def triggerTimer(self):
+                self.write(f'TRIGger:TIMer?')    
+        @triggerTimer.setter
         def triggerTimer(self, value:int):
-                self.write(f'TRIGger:TIMer {value}')    
-
+                if value!=self._triggerTimer:
+                        self._triggerTimer=value
+                self.write(f'TRIGger:TIMer {value}')      
+        @property
+        def triggerSource(self):
+                return self.query(f'TRIGger:SOURce?')    
+        @triggerSource.setter
         def triggerSource(self, mode:str):
-                self.write(f'TRIGger:SOURce {mode}')    
-
+                if mode!=self._triggerSource:
+                        self._triggerSource=mode
+                return self.write(f'TRIGger:SOURce {mode}')      
+             
         ## Setters ################################################
  
 
@@ -220,7 +231,6 @@ class ArbRider:
                         if value!=self._pulseWidth:
                                 self._pulseWidth=value
                                 self._awg.write(f'SOURCE{self._channel}:PULSe:WIDTh {value}')      
-
                 @property
                 def burstMode(self):
                         return self._awg.query(f'SOURce{self._channel}:BURSt:MODE?')  
