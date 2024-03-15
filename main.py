@@ -1,10 +1,13 @@
 import TeledyneLeCroyPy
-import ArbRiderAWG
+import ArbRiderAFG
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+
+
+
 osc = TeledyneLeCroyPy.LeCroyWaveRunner('VICP::') 
-awg = ArbRiderAWG.ArbRider('TCPIP:: ::INSTR')
+awg = ArbRiderAFG.ArbRider('TCPIP:: ::INSTR')
 TDIV=4e-3
 VDIV=50e-3 
 
@@ -29,7 +32,6 @@ for waveform in data['waveforms']:
 time.sleep(2)
    
 awg.ch1.output(0)
-
 awg.stop()
 plt.plot(time_values,amplitude_values)
 plt.xlabel('Time (s)')
