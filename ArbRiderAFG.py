@@ -55,12 +55,21 @@ class ArbRider:
 
         def run(self):
                 self.write(f'AFGControl:START')    
-  
         def stop(self):
                 self.write(f'AFGControl:STOP')    
         def trigger(self):
                 self.write(f'TRIGger:IMMediate')    
+        def triggerConfig(source:str, timer=None):
+                """ 
+                Configures trigger \n
+                Parameters
+                ------------
 
+                """     
+                triggerSource=source
+                if timer!= None:
+                        triggerTimer=timer
+                        
         @property
         def triggerTimer(self):
                 self.write(f'TRIGger:TIMer?')    
@@ -77,7 +86,8 @@ class ArbRider:
                 if mode!=self._triggerSource:
                         self._triggerSource=mode
                 return self.write(f'TRIGger:SOURce {mode}')      
-             
+        
+
         ## Setters ################################################
  
 
@@ -326,20 +336,7 @@ class ArbRider:
                                 self._awg.write(f'SOURCE{self._channel}:BURSt:STATe {value}')     
 
 
-                def triggerConfig():
-                        """ 
-                        Configures trigger \n
-                        Parameters
-                        ------------
-                        float:dutyCycle
-                                        sets the duty cycle of the pulse waveform in %
-                        float:period
-                                        sets the period for the pulse waveform in seconds
-                        float:transitionLead
-                                        sets the rising edge time of the pulse waveform in seconds
-                        float:transitionTrail
-                                        sets the falling edge time of the pulse waveform in seconds
-                        """                   
+              
 
                 def pulseConfig(self,dutyCycle:float,period:float,transitionLead:float,transitionTrail:float):
                         """ 
