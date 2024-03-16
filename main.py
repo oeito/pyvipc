@@ -23,8 +23,7 @@ awg.ch1.output(1)
 awg.ch1.pulseWidth('5us')
 awg.ch1.amplitude(200e-3)
 awg.ch1.pulseDutyCycle(20)
-awg.run()
-awg.trigger()
+awg.ch1.triggerConfig()
 data=  osc.get_waveform(n_channel=3)
 for waveform in data['waveforms']:
     time_values = waveform['Time (s)']

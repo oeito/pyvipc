@@ -38,21 +38,10 @@ class ArbRider:
 
         def query(self, msg):
                 return self.rm.query(msg)
-                time.sleep(0.1)
         
         def idn(self):
                 return self.query('*IDN?')
         
-        def syncroniseChannels(self):
-                self.write('PHAS:INIT')
-
-        def setCustomWaveform(self, waveform:np.array,name:str):
-                self.write(f'WLISt:WAVeform:NEW "{name}",{waveform.length},REAL')
-                self.writeBinary(f'WLISt:WAVeform:DATA "{name}",0,{waveform.length}', waveform )
-        
-
-
-
         def runState(self):
                 """Query run status      
                 Returns
@@ -71,12 +60,12 @@ class ArbRider:
                 self.write(f'AFGControl:STOP')    
         def trigger(self):
                 self.write(f'TRIGger:IMMediate')    
-                
+
         @property
         def triggerTimer(self):
                 self.write(f'TRIGger:TIMer?')    
         @triggerTimer.setter
-        def triggerTimer(self, value:int):
+        def triggerTimer(self, value:float):
                 if value!=self._triggerTimer:
                         self._triggerTimer=value
                 self.write(f'TRIGger:TIMer {value}')      
@@ -95,8 +84,6 @@ class ArbRider:
         class Channel:
                 def __init__(self,awg,channel:int):
                         self._awg=awg
-
-
 
                 @property
                 def output(self):
@@ -231,6 +218,69 @@ class ArbRider:
                         if value!=self._pulseWidth:
                                 self._pulseWidth=value
                                 self._awg.write(f'SOURCE{self._channel}:PULSe:WIDTh {value}')      
+
+                #### Double Pulse #########################################################################
+
+                @property
+                def doublePulseAmplitude(self):
+                        return  self._awg.query(f'SOURce{self._channel}:DOUBLEPULSe:PULSe1:AMPLitude?'), self._awg.query(f'SOURce{self._channel}:DOUBLEPULSe:PULSe2:AMPLitude?')      
+
+                @doublePulseAmplitude.setter
+                def doublePulseDutyCycle(self,value:float, pulse:int):
+                        if pulse==1:
+                                if value!=self._doublePulseAmplitude1:
+                                        self._doublePulseAmplitude1=value
+                                        self._awg.write(f'SOURCE{self._channel}:DOUBLEPULSe:PULSe{pulse}:AMPLitude {value}')   
+                        elif pulse==2:
+                                if value!=self._doublePulseAmplitude2:
+                                        self._doublePulseAmplitude2=value
+                                        self._awg.write(f'SOURCE{self._channel}:DOUBLEPULSe:PULSe{pulse}:AMPLitude {value}')                         
+                @property
+                def doublePulseDutyCycle(self):
+                        return self._awg.query(f'SOURce{self._channel}:doublePulse:DCYCle?')      
+
+                @doublePulseDutyCycle.setter
+                def doublePulseDutyCycle(self,value:float, pulse:int):
+                        if value!=self._doublePulseDutyCycle:
+                                self._doublePulseDutyCycle=value
+                                self._awg.write(f'SOURCE{self._channel}:doublePulse:DCYCle {value}')   
+                @property
+                def doublePulsePeriod(self):
+                        return self._awg.query(f'SOURce{self._channel}:doublePulse:PERiod?')      
+
+                @doublePulsePeriod.setter
+                def doublePulsePeriod(self,value:float, pulse:int):
+                        if value!=self._doublePulsePeriod:
+                                self._doublePulsePeriod=value
+                                self._awg.write(f'SOURCE{self._channel}:doublePulse:PERiod {value}')     
+                @property
+                def doublePulseTransitionLead(self):
+                        return self._awg.query(f'SOURce{self._channel}:doublePulse:TRANsition:LEADing?')      
+   
+                @doublePulseTransitionLead.setter
+                def doublePulseTransitionLead(self,value:float, pulse:int):
+                        if value!=self._doublePulseTransitionLead:
+                                self._doublePulseTransitionLead=value
+                                self._awg.write(f'SOURCE{self._channel}:doublePulse:TRANsition:LEADing {value}')      
+                @property
+                def doublePulseTransitionTrail(self):
+                        return self._awg.query(f'SOURce{self._channel}:doublePulse:TRANsition:TRAiling?')      
+   
+                @doublePulseTransitionTrail.setter
+                def doublePulseTransitionTrail(self,value:float, pulse:int):
+                        if value!=self._doublePulseTransitionTrail:
+                                self._doublePulseTransitionTrail=value
+                                self._awg.write(f'SOURCE{self._channel}:doublePulse:TRANsition:TRAiling {value}')      
+                @property
+                def doublePulseWidth(self):
+                        return self._awg.query(f'SOURce{self._channel}:doublePulse:WIDTh?')   
+                @doublePulseWidth.setter
+                def doublePulseWidth(self,value:float, pulse:int):
+                        if value!=self._doublePulseWidth:
+                                self._doublePulseWidth=value
+                                self._awg.write(f'SOURCE{self._channel}:doublePulse:WIDTh {value}')      
+
+                #### Burst ################################################################################     
                 @property
                 def burstMode(self):
                         return self._awg.query(f'SOURce{self._channel}:BURSt:MODE?')  
@@ -255,3 +305,38 @@ class ArbRider:
                         if value!=self._burstState:
                                 self._burstState=value
                                 self._awg.write(f'SOURCE{self._channel}:BURSt:STATe {value}')     
+
+
+                def triggerConfig():
+                        """ 
+                        Configures trigger \n
+                        Parameters
+                        ------------
+                        float:dutyCycle
+                                        sets the duty cycle of the pulse waveform in %
+                        float:period
+                                        sets the period for the pulse waveform in seconds
+                        float:transitionLead
+                                        sets the rising edge time of the pulse waveform in seconds
+                        float:transitionTrail
+                                        sets the falling edge time of the pulse waveform in seconds
+                        """                   
+
+                def pulseConfig(self,dutyCycle:float,period:float,transitionLead:float,transitionTrail:float):
+                        """ 
+                        Configures pulse   \n 
+                        Parameters
+                        ------------
+                        dutyCycle
+                                Sets the duty cycle of the pulse waveform in %
+                        period
+                                Sets the period for the pulse waveform in seconds
+                        transitionLead    
+                                Sets the rising edge time of the pulse waveform in seconds
+                        transitionTrail   
+                                Sets the falling edge time of the pulse waveform in seconds
+                        """
+                        self.pulseDutyCycle=dutyCycle
+                        self.pulsePeriod=period
+                        self.pulseTransitionLead=transitionLead
+                        self.pulseTransitionTrail=transitionTrail
