@@ -18,20 +18,14 @@ osc.set_trig_mode('SINGLE')
 osc.set_trig_source('C3')
 osc.set_trig_slope('C3','Positive')
 
-awg.ch1.burst('ON')
-awg.ch1.output(1)
-awg.ch1.pulseWidth('5us')
-awg.ch1.amplitude(200e-3)
-awg.ch1.pulseDutyCycle(20)
-awg.ch1.triggerConfig()
+
 data=  osc.get_waveform(n_channel=3)
 for waveform in data['waveforms']:
     time_values = waveform['Time (s)']
     amplitude_values = waveform['Amplitude (V)']
 time.sleep(2)
    
-awg.ch1.output(0)
-awg.stop()
+
 plt.plot(time_values,amplitude_values)
 plt.xlabel('Time (s)')
 plt.ylabel('Amplitude (V)')
