@@ -59,7 +59,7 @@ class ArbRider:
         def stop(self):
                 self.write(f'AFGControl:STOP')    
         def trigger(self):
-                self.write(f'TRIGger:SEQuence:IMMediate')   
+                self.write(f'*TRG')   
 
         def triggerConfig(source:str, timer=None):
                 """ 
