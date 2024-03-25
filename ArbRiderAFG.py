@@ -22,6 +22,7 @@ class ArbRider:
                         raise
                 self.ch1= self.Channel(self.rm,1)
                 self.ch2= self.Channel(self.rm,2)
+                self._triggerSource=0
      
         def __del__(self):
                 self.rm.close()    
@@ -58,7 +59,8 @@ class ArbRider:
         def stop(self):
                 self.write(f'AFGControl:STOP')    
         def trigger(self):
-                self.write(f'TRIGger:IMMediate')    
+                self.write(f'TRIGger:SEQuence:IMMediate')   
+
         def triggerConfig(source:str, timer=None):
                 """ 
                 Configures trigger \n
@@ -94,7 +96,36 @@ class ArbRider:
         class Channel:
                 def __init__(self,awg,channel:int):
                         self._awg=awg
-
+                        self._channel=channel
+                        self._output=0
+                        self._outputDelay=0
+                        self._outputImpedance=0
+                        self._outputLoad=0
+                        self._LowImpedance=0
+                        self._frequency=0
+                        self._shape=''
+                        self._phase=0
+                        self._runMode=''
+                        self._amplitude=0
+                        self._offset=0
+                        self._pulseDutyCycle=0
+                        self._pulsePeriod=0
+                        self._pulseTransitionLead=0
+                        self._pulseTransitionTrail=0
+                        self._pulseWidth=0
+                        self._doublePulseAmplitude1=0
+                        self._doublePulseAmplitude2=0
+                        self._doublePulseTransitionLead1=0
+                        self._doublePulseTransitionLead2=0
+                        self._doublePulseTransitionTrail1=0
+                        self._doublePulseTransitionTrail2=0
+                        self._doublePulseWidth1=0
+                        self._doublePulseWidth2=0
+                        self._doublePulseDelay1=0
+                        self._doublePulseDelay2=0
+                        self._burstMode=0
+                        self._burstNcycles=0
+                        self._burstState=0
                 @property
                 def output(self):
                         return self._awg.query(f'OUTPut{self._channel}:STATe?')
@@ -151,7 +182,7 @@ class ArbRider:
                 def shape(self,value:str):
                         if value != self._shape:
                                 self._shape=value
-                                self._awg.write(f'SOURce{self._channel}::FUNCtion:SHAPe {value}')
+                                self._awg.write(f'SOURce{self._channel}:FUNCtion:SHAPe {value}')
                 @property
                 def phase(self):
                         return self._awg.query(f'SOURce{self._channel}:PHASe?') 
