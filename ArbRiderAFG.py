@@ -60,6 +60,7 @@ class ArbRider:
                 self.write(f'AFGControl:STOP')    
         def trigger(self):
                 self.write(f'*TRG')   
+                self.write(f'ABORT') 
 
         def triggerConfig(source:str, timer=None):
                 """ 
@@ -203,7 +204,7 @@ class ArbRider:
                 def amplitude(self):
                         return self._awg.query(f'SOURce{self._channel}:VOLTage:AMPLitude?')
                 @amplitude.setter
-                def amplitude(self,value:float):
+                def amplitude(self,value:str):
                         if value != self._amplitude:
                                 self._amplitude=value
                                 self._awg.write(f'SOURce{self._channel}:VOLTage:LEVel {value}')
@@ -211,7 +212,7 @@ class ArbRider:
                 def offset(self):
                         return self._awg.query(f'SOURce{self._channel}:VOLTage:OFFSet?')
                 @offset.setter
-                def offset(self,value:float):
+                def offset(self,value:str):
                         if value != self._offset:
                                 self._offset=value
                                 self._awg.write(f'SOURce{self._channel}:VOLTage:LEVel:OFFSet {value}')
@@ -369,7 +370,7 @@ class ArbRider:
 
               
 
-                def pulseConfig(self,dutyCycle:float,period:float,transitionLead:float,transitionTrail:float):
+                def pulseConfig(self,ncycles:int,amplitude:float,offset:float,dutyCycle:float,period:float,transitionLead:float,transitionTrail:float):
                         """ 
                         Configures pulse   \n 
                         Parameters
@@ -383,6 +384,12 @@ class ArbRider:
                         transitionTrail   
                                 Sets the falling edge time of the pulse waveform in seconds
                         """
+                        self.shape='PULSe'
+                        self.burstState=1
+                        self.burstMode='TRIGgered'
+                        self.burstNcycles=ncycles
+                        self.amplitude=amplitude
+                        self.offset=offset
                         self.pulseDutyCycle=dutyCycle
                         self.pulsePeriod=period
                         self.pulseTransitionLead=transitionLead

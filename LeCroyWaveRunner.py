@@ -464,7 +464,6 @@ def parse_trigtime_block(raw_bytes:bytes, parsed_wavedesc_block:dict)->list:
 
 class WaveRunner:
 	def __init__(self, resource_name:str):
-
 		try:
 			rm = pyvisa.ResourceManager('@py')
 			self.resource = rm.open_resource(resource_name)
@@ -477,7 +476,24 @@ class WaveRunner:
 		self.ch4= self.Channel(self.resource,4)
 		self.write('CHDR OFF') # This is to receive only numerical data in the answers and not also the echo of the command and some other stuff. See p. 22 of http://cdn.teledynelecroy.com/files/manuals/tds031000-2000_programming_manual.pdf
 
-	
+		def tdiv(self, tdiv: str):
+			"""Sets the horizontal scale per division for the main window.
+			Parameterers
+			------------
+			 '1NS','2NS','5NS','10NS','20NS','50NS','100NS','200NS','500NS',
+			 '1US','2US','5US','10US','20US','50US','100US','200US','500US',
+			 '1MS','2MS','5MS','10MS','20MS','50MS','100MS','200MS','500MS',
+			 '1S','2S','5S','10S','20S','50S','100S' 
+			"""
+			divisions=[ 1, 2, 10, 20, 50, 100,
+						1e-3,2e-3,5e-3,10e-3,20e-3,50e-3,100e-3,200e-3,500e-3,
+						1e-6,2e-6,5e-6,10e-6,20e-6,50e-6,100e-6,200e-6,500e-6,
+						1e-9,2e-9,5e-9,10e-9,20e-9,50e-9,100e-9,200e-9,500e-9]
+			
+			closestValue = max(divisions, key=lambda x: abs(x - (tdiv/10)))
+			
+			# See https://cdn.teledynelecroy.com/files/manuals/maui-remote-control-and-automation-manual.pdf#page=233
+			self._osc.write(f'TDIV {closestValue}')
 
 	def idn(self):
 		"""Returns the name of the instrument, i.e. its answer to the
@@ -501,24 +517,15 @@ class WaveRunner:
 	def query(self, msg):
 		return 	self.resource.query(msg)
 	
-	def waitTrigger(self,timeout=-1):
-		"""Sets the trigger in 'SINGLE' and blocks the execution of the
-		program until the oscilloscope triggers.
-		- timeout: float, number of seconds to wait until rising a 
-		RuntimeError exception. If timeout=-1 it is infinite."""
-		try:
-			timeout = float(timeout)
-		except:
-			raise TypeError(f'<timeout> must be a float number, received object of type {type(timeout)}.')
-
-		start = time.time()
-		while self.query('TRIG_MODE?') != 'STOP':
+	def waitTrigger(self):
+		self.write('WAIT')
+	def opComplete(self):
+		while int(self.query('*OPC?')) != 1:
+			print(len(self.query('*OPC?')))
 			time.sleep(.1)
-			if timeout >= 0 and time.time() - start > timeout:
-				raise RuntimeError(f'Timed out waiting for oscilloscope to trigger after {timeout} seconds.')
 	@property
 	def trigMode(self):
-		return self.query('TRIG_MODE?')
+		return self.query('TRMD?')
 	
 	@trigMode.setter
 	def trigMode(self, mode: str):
@@ -774,15 +781,5 @@ class WaveRunner:
 
 			self._osc.write(f'C{self._channel}:OFST {float(voffset)}') # http://cdn.teledynelecroy.com/files/manuals/tds031000-2000_programming_manual.pdf#page=43
 
-		def tdiv(self, tdiv: str):
-			"""Sets the horizontal scale per division for the main window.
-			Parameterers
-			------------
-			 '1NS','2NS','5NS','10NS','20NS','50NS','100NS','200NS','500NS',
-			 '1US','2US','5US','10US','20US','50US','100US','200US','500US',
-			 '1MS','2MS','5MS','10MS','20MS','50MS','100MS','200MS','500MS',
-			 '1S','2S','5S','10S','20S','50S','100S' 
-			"""
-			# See https://cdn.teledynelecroy.com/files/manuals/maui-remote-control-and-automation-manual.pdf#page=233
-			self._osc.write(f'TDIV {tdiv}')
+
 
