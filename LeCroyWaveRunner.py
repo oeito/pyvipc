@@ -476,24 +476,22 @@ class WaveRunner:
 		self.ch4= self.Channel(self.resource,4)
 		self.write('CHDR OFF') # This is to receive only numerical data in the answers and not also the echo of the command and some other stuff. See p. 22 of http://cdn.teledynelecroy.com/files/manuals/tds031000-2000_programming_manual.pdf
 
-		def tdiv(self, tdiv: str):
-			"""Sets the horizontal scale per division for the main window.
-			Parameterers
-			------------
-			 '1NS','2NS','5NS','10NS','20NS','50NS','100NS','200NS','500NS',
-			 '1US','2US','5US','10US','20US','50US','100US','200US','500US',
-			 '1MS','2MS','5MS','10MS','20MS','50MS','100MS','200MS','500MS',
-			 '1S','2S','5S','10S','20S','50S','100S' 
-			"""
-			divisions=[ 1, 2, 10, 20, 50, 100,
-						1e-3,2e-3,5e-3,10e-3,20e-3,50e-3,100e-3,200e-3,500e-3,
-						1e-6,2e-6,5e-6,10e-6,20e-6,50e-6,100e-6,200e-6,500e-6,
-						1e-9,2e-9,5e-9,10e-9,20e-9,50e-9,100e-9,200e-9,500e-9]
-			
-			closestValue = max(divisions, key=lambda x: abs(x - (tdiv/10)))
-			
-			# See https://cdn.teledynelecroy.com/files/manuals/maui-remote-control-and-automation-manual.pdf#page=233
-			self._osc.write(f'TDIV {closestValue}')
+	def tdiv(self, tdiv: str):
+		"""Sets the horizontal scale per division for the main window.
+		Parameterers
+		------------
+			'1NS','2NS','5NS','10NS','20NS','50NS','100NS','200NS','500NS',
+			'1US','2US','5US','10US','20US','50US','100US','200US','500US',
+			'1MS','2MS','5MS','10MS','20MS','50MS','100MS','200MS','500MS',
+			'1S','2S','5S','10S','20S','50S','100S' 
+		"""
+		divisions=[ 1, 2, 10, 20, 50, 100,1e-3,2e-3,5e-3,10e-3,20e-3,50e-3,100e-3,200e-3,500e-3,1e-6,2e-6,5e-6,10e-6,20e-6,50e-6,100e-6,200e-6,500e-6,1e-9,2e-9,5e-9,10e-9,20e-9,50e-9,100e-9,200e-9,500e-9]
+		
+		closestValue = min(divisions, key=lambda x: abs(x - (tdiv/6)))
+		print(closestValue)
+
+		# See https://cdn.teledynelecroy.com/files/manuals/maui-remote-control-and-automation-manual.pdf#page=233
+		self.write(f'TDIV {closestValue}')
 
 	def idn(self):
 		"""Returns the name of the instrument, i.e. its answer to the
@@ -506,6 +504,7 @@ class WaveRunner:
 	def write(self, msg):
 		"""Sends a command to the instrument."""
 		self.resource.write(msg)
+		time.sleep(0.1)
 	
 	def read(self):
 		"""Reads the answer from the instrument."""
@@ -519,10 +518,14 @@ class WaveRunner:
 	
 	def waitTrigger(self):
 		self.write('WAIT')
+
 	def opComplete(self):
 		while int(self.query('*OPC?')) != 1:
-			print(len(self.query('*OPC?')))
 			time.sleep(.1)
+
+	def parameterSetup(self,mode:str,number:int,channel:int):
+			self.write(f'PACU {number}, {mode}, C{channel}')
+
 	@property
 	def trigMode(self):
 		return self.query('TRMD?')
@@ -550,8 +553,6 @@ class WaveRunner:
 		"""
 		self.write(f'TRMD {mode}')
 
-
-	
 	def trigSelect(self,trig_type:str , trig_source: str):
 		"""Sets the trigger conditions
 		Parameterers
@@ -580,21 +581,7 @@ class WaveRunner:
 		"""
 		# See http://cdn.teledynelecroy.com/files/manuals/automation_command_ref_manual_ws.pdf#page=152
 		self.write(f'{trig_source}:TRCP {trig_coupling}')
-	@property
-	def trigLevel(self):
-		return self.query(f'TRIG_LEVEL?')
-		
-	@trigLevel.setter
-	def trigLevel(self, trig_source: str, level: float):
-		"""Set the trigger level.
-		Parameterers
-		------------
-		trig_source : str
-		C1,C2,C3,C4,EX,EX5
-		trig_coupling: float """
 
-		# See https://cdn.teledynelecroy.com/files/manuals/maui-remote-control-and-automation-manual.pdf#page=237
-		self.write(f'{trig_source}:TRLV {level}')
 	
 	@property
 	def trigSlope(self):
@@ -742,7 +729,6 @@ class WaveRunner:
 			this function returns is the list of numbers you find if you go
 			in the oscilloscope window to "Timebase→Sequence→Show Sequence Trigger Times...→since Segment 1"
 			
-			
 			Returns
 			-------
 			trigger_times: list
@@ -754,7 +740,21 @@ class WaveRunner:
 			datetimes = [datetime.datetime.fromtimestamp(i/1e10) for i in raw] # Don't know why we have to divide by 1e10, but it works...
 			datetimes = [i-datetimes[0] for i in datetimes]
 			return [i.total_seconds() for i in datetimes]
-		
+
+		@property
+		def trigLevel(self):
+			return self._osc.query(f'TRIG_LEVEL?')
+			
+		@trigLevel.setter
+		def trigLevel(self,level: float):
+			"""Set the trigger level.
+			Parameterers
+			------------
+			trig_coupling: float """
+
+			# See https://cdn.teledynelecroy.com/files/manuals/maui-remote-control-and-automation-manual.pdf#page=237
+			self._osc.write(f'C{self._channel}:TRLV {level}')
+
 		@property
 		def vdiv(self):
 			"""Gets the vertical scale of the specified channel. Returns a 

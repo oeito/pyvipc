@@ -29,7 +29,7 @@ class ArbRider:
                  
         def write(self, msg):
                 self.rm.write(msg)
-                time.sleep(0.1)
+                time.sleep(0.2)
 
         def writeBinary(self,command:str,values:str):
                 self.rm.write_binary_values(command, values, datatype='d', is_big_endian=False)
@@ -224,7 +224,7 @@ class ArbRider:
                         return self._awg.query(f'SOURce{self._channel}:PULSe:DCYCle?')      
 
                 @pulseDutyCycle.setter
-                def pulseDutyCycle(self,value:float):
+                def pulseDutyCycle(self,value:int):
                         if value!=self._pulseDutyCycle:
                                 self._pulseDutyCycle=value
                                 self._awg.write(f'SOURCE{self._channel}:PULSe:DCYCle {value}')   
@@ -367,9 +367,6 @@ class ArbRider:
                                 self._burstState=value
                                 self._awg.write(f'SOURCE{self._channel}:BURSt:STATe {value}')     
 
-
-              
-
                 def pulseConfig(self,ncycles:int,amplitude:float,offset:float,dutyCycle:float,period:float,transitionLead:float,transitionTrail:float):
                         """ 
                         Configures pulse   \n 
@@ -384,10 +381,7 @@ class ArbRider:
                         transitionTrail   
                                 Sets the falling edge time of the pulse waveform in seconds
                         """
-                        self.shape='PULSe'
-                        self.burstState=1
-                        self.burstMode='TRIGgered'
-                        self.burstNcycles=ncycles
+
                         self.amplitude=amplitude
                         self.offset=offset
                         self.pulseDutyCycle=dutyCycle
